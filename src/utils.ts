@@ -23,3 +23,17 @@ export function createBoard(): number[] {
         return acc.concat(value);
     }, []);
 }
+
+export function convertBoardFromFlatToMatrix(flatArray: number[]): number[][] {
+    return flatArray.reduce((acc: number[][], value, index) => {
+        const row = getRow(index);
+
+        if (!acc[row]) {
+            acc[row] = [];
+        }
+
+        acc[row].push(value);
+
+        return acc;
+    }, []);
+}

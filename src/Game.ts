@@ -1,4 +1,9 @@
-import {createBoard, isTileOccupied, isTileOutsideTheBoard} from "./utils";
+import {
+    convertBoardFromFlatToMatrix,
+    createBoard,
+    isTileOccupied,
+    isTileOutsideTheBoard
+} from "./utils";
 
 export enum Entity {
     EMPTY = 0,
@@ -51,10 +56,10 @@ class SnakeTile {
         let futureTile;
         switch(direction) {
             case DIRECTION.UP:
-                futureTile = this.tile + Game.BOARD_SIZE;
+                futureTile = this.tile - Game.BOARD_SIZE;
                 break;
             case DIRECTION.DOWN:
-                futureTile = this.tile - Game.BOARD_SIZE;
+                futureTile = this.tile + Game.BOARD_SIZE;
                 break;
             case DIRECTION.LEFT:
                 futureTile = this.tile - 1;
@@ -65,7 +70,6 @@ class SnakeTile {
         }
 
         if (isTileOccupied(futureTile, this.gameState.board) || isTileOutsideTheBoard(futureTile)) {
-            this.gameState.result = GameResult.LOSE;
             return false;
         }
 
@@ -77,7 +81,6 @@ class SnakeTile {
 
 export default class Game {
     public static BOARD_SIZE: number = 10;
-    // @todo Keep matrix operational for visual debug.
     public static BOARD_MATRIX: number[][] = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -91,7 +94,6 @@ export default class Game {
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     ];
 
-
     public state: GameState = {
         snake: [],
         board: createBoard(),
@@ -99,19 +101,22 @@ export default class Game {
     };
 
     public start() {
+        console.log(`Game started.`);
         const state = this.state;
-        console.log("Game started", state.board);
-        // By default start in the middle.
-        const startTile = (Game.BOARD_SIZE * Game.BOARD_SIZE) / 2;
+        // By default start in the middle of the board.
+        const startTile = (Game.BOARD_SIZE * Game.BOARD_SIZE) / 2 + Game.BOARD_SIZE / 2;
         state.snake.push(
             new SnakeTile(state, DIRECTION.NONE, startTile, true)
         );
+
+        state.board[startTile] = Entity.SNAKE;
     }
 
     public move(direction: DIRECTION) {
         const state = this.state;
 
         if (state.result !== GameResult.PLAYING) {
+            console.log(`Game has finished.`);
             return false;
         }
 
@@ -119,10 +124,14 @@ export default class Game {
         const oldTile = snakeHead.tile;
         const hasMoved = snakeHead.updateWithDirection(direction);
 
-        if (hasMoved) {
-            state.board[oldTile] = Entity.EMPTY;
-            console.log("Snake has moved", state.board);
+        if (!hasMoved) {
+            state.result = GameResult.LOSE;
+            console.log(`Game lost!`);
         }
+
+        state.board[oldTile] = Entity.EMPTY;
+        state.board[snakeHead.tile] = Entity.SNAKE;
+        console.log(`Snake has moved`, convertBoardFromFlatToMatrix(state.board));
     }
 
     public reset() {
