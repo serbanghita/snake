@@ -1,10 +1,9 @@
 import {
     convertBoardFromFlatToMatrix,
-    createBoard,
-    isTileOccupied,
-    isTileOutsideTheBoard
+    createBoard, getFreeBoardTiles,
+    randomInt
 } from "./utils";
-import SnakeTile from "./SnakeTile";
+import Snake from "./Snake";
 
 export enum Entity {
     EMPTY = 0,
@@ -28,15 +27,15 @@ export enum DIRECTION {
 }
 
 export interface GameState {
-    // Snake is represented by an array of SnakeTiles.
-    snake: SnakeTile[];
     // Board matrix represented as a flat array.
     board: number[];
     // The result of the game.
     result: GameResult;
+    // Number of fruits eaten.
+    score: number;
 }
 
-export default class Game {
+export default abstract class Game {
     public static BOARD_SIZE: number = 10;
     public static BOARD_MATRIX: number[][] = [
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -52,21 +51,27 @@ export default class Game {
     ];
 
     public state: GameState = {
-        snake: [],
         board: createBoard(),
-        result: GameResult.PLAYING
+        result: GameResult.PLAYING,
+        score: 0
     };
+    public snake: Snake;
+
+    public abstract onInit();
+    public abstract onStart();
+    public abstract onAfterMove();
+    public abstract onAfterGenerateFruit(tileIndex: number);
 
     public start() {
         console.log(`Game started.`);
         const state = this.state;
         // By default start in the middle of the board.
         const startTile = (Game.BOARD_SIZE * Game.BOARD_SIZE) / 2 + Game.BOARD_SIZE / 2;
-        state.snake.push(
-            new SnakeTile(state, DIRECTION.NONE, startTile, true)
-        );
+        this.snake = new Snake(state, startTile, DIRECTION.NONE);
 
         state.board[startTile] = Entity.SNAKE;
+
+        this.onStart();
     }
 
     public move(direction: DIRECTION) {
@@ -77,8 +82,7 @@ export default class Game {
             return false;
         }
 
-        const snakeHead = this.state.snake[0];
-        const oldTile = snakeHead.tile;
+        const snakeHead = this.snake.head;
         const hasMoved = snakeHead.updateWithDirection(direction);
 
         if (!hasMoved) {
@@ -86,16 +90,30 @@ export default class Game {
             console.log(`Game lost!`);
         }
 
-        state.board[oldTile] = Entity.EMPTY;
+        state.board[snakeHead.oldTile] = Entity.EMPTY;
         state.board[snakeHead.tile] = Entity.SNAKE;
         console.log(`Snake has moved`, convertBoardFromFlatToMatrix(state.board));
+
+        this.onAfterMove();
+    }
+
+    public generateFruit() {
+        const state = this.state;
+
+        const freeTiles = getFreeBoardTiles(state.board);
+        const index = randomInt(0, freeTiles.length - 1);
+        const freeTileIndex = freeTiles[index];
+
+        state.board[freeTileIndex] = Entity.FRUIT;
+
+        this.onAfterGenerateFruit(freeTileIndex);
     }
 
     public reset() {
         this.state = {
-            snake: [],
             board: createBoard(),
-            result: GameResult.PLAYING
+            result: GameResult.PLAYING,
+            score: 0
         }
     }
 

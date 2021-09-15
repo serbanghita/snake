@@ -1,9 +1,10 @@
 import {isTileOccupied, isTileOutsideTheBoard} from "./utils";
-import Game, {DIRECTION, GameState} from "./Game";
+import Game, {DIRECTION, Entity, GameState} from "./Game";
 
 export default class SnakeTile {
     public direction: DIRECTION = DIRECTION.NONE;
     public tile: number = 0;
+    public oldTile: number = 0;
     public isHead: boolean = false;
 
     constructor(private readonly gameState: GameState, direction, tile, isHead) {
@@ -39,6 +40,11 @@ export default class SnakeTile {
             return false;
         }
 
+        if (this.gameState.board[futureTile] === Entity.FRUIT) {
+            // Snake grows.
+        }
+
+        this.oldTile = this.tile;
         this.tile = futureTile;
 
         return true;

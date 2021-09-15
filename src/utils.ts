@@ -1,5 +1,9 @@
 import Game, {Entity} from "./Game";
 
+export function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export function getRow(tileIndex: number): number {
     return Math.floor(tileIndex / Game.BOARD_SIZE);
 }
@@ -34,6 +38,16 @@ export function convertBoardFromFlatToMatrix(flatArray: number[]): number[][] {
 
         acc[row].push(value);
 
+        return acc;
+    }, []);
+}
+
+export function getFreeBoardTiles(flatArray: number[]) {
+    return flatArray.reduce((acc, value, index) => {
+        if (value > 0) {
+            return acc;
+        }
+        (acc as number[]).push(index);
         return acc;
     }, []);
 }
