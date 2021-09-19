@@ -8,12 +8,41 @@ export default class GameImpl extends Game {
     }
 
     onInit() {
-        this.scene.renderCanvas();
-        this.scene.renderGrid(this.state.board);
+        const scene = this.scene;
+        const state = this.state;
+        const api = this;
+
+        scene.renderCanvas();
+        scene.renderGridInit(state.board);
+        scene.renderGrid(state.board);
+        scene.renderStartButton();
+
+        scene.$startBtn.addEventListener('click', () => {
+            api.reset();
+            scene.reset();
+            api.start();
+        });
     }
 
     onStart() {
-        this.scene.renderSnake(this.snake);
+        const scene = this.scene;
+        const state = this.state;
+        const snake = this.snake;
+        const api = this;
+
+        scene.renderGrid(state.board);
+        scene.renderSnake(snake);
+
+        for (let i = 0; i < 10; i++) {
+            api.generateFruit();
+        }
+    }
+
+    onLose() {
+        const scene = this.scene;
+        const state = this.state;
+
+        scene.renderAnnouncements(`You lose. Your score is ${state.score}`);
     }
 
     onAfterMove() {
@@ -26,4 +55,8 @@ export default class GameImpl extends Game {
     onAfterGenerateFruit(tileIndex:number) {
         this.scene.renderFruit(tileIndex);
     }
+
+    // onFruitEat() {
+    //     this.state.score += 1;
+    // }
 }

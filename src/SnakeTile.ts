@@ -1,8 +1,6 @@
 import {DIRECTION} from "./Game";
 
 export default class SnakeTile {
-
-
     constructor(
         public direction: DIRECTION = DIRECTION.NONE,
         public tile: number = 0,

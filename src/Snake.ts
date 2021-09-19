@@ -48,16 +48,18 @@ export default class Snake {
         // Eats a fruit.
         if (gameState.board[futureTile] === Entity.FRUIT) {
             // Snake grows.
-            this.body.push(new SnakeTile(direction, futureTile, futureTile));
+            this.body.unshift(new SnakeTile(direction, futureTile, futureTile));
             // Update the head.
             this.head = this.body[0];
             // Update board state.
             gameState.board[futureTile] = Entity.SNAKE;
+
+            gameState.score += 1;
         } else {
             // Move the snake's body.
             if (this.body.length > 1) {
                 const tailTile = this.body.pop();
-                this.body.push(tailTile as SnakeTile);
+                this.body.unshift(tailTile as SnakeTile);
             }
 
             // Update the head.

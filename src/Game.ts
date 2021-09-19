@@ -61,6 +61,7 @@ export default abstract class Game {
     public abstract onStart();
     public abstract onAfterMove();
     public abstract onAfterGenerateFruit(tileIndex: number);
+    public abstract onLose();
 
     public start() {
         console.log(`Game started.`);
@@ -87,6 +88,7 @@ export default abstract class Game {
 
         if (!hasMoved) {
             state.result = GameResult.LOSE;
+            this.onLose();
             console.log(`Game lost!`);
         }
 
