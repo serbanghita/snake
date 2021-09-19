@@ -17,7 +17,9 @@ export default class GameImpl extends Game {
     }
 
     onAfterMove() {
-        this.scene.clearTile(this.snake.head.oldTile);
+        if (this.snake.head.tile !== this.snake.head.oldTile) {
+            this.scene.clearTile(this.snake.head.oldTile);
+        }
         this.scene.renderSnake(this.snake);
     }
 

@@ -76,22 +76,20 @@ export default abstract class Game {
 
     public move(direction: DIRECTION) {
         const state = this.state;
+        const snake = this.snake;
 
         if (state.result !== GameResult.PLAYING) {
             console.log(`Game has finished.`);
             return false;
         }
 
-        const snakeHead = this.snake.head;
-        const hasMoved = snakeHead.updateWithDirection(direction);
+        const hasMoved = snake.updateWithDirection(direction);
 
         if (!hasMoved) {
             state.result = GameResult.LOSE;
             console.log(`Game lost!`);
         }
 
-        state.board[snakeHead.oldTile] = Entity.EMPTY;
-        state.board[snakeHead.tile] = Entity.SNAKE;
         console.log(`Snake has moved`, convertBoardFromFlatToMatrix(state.board));
 
         this.onAfterMove();

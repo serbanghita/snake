@@ -40,6 +40,10 @@ export default class Scene {
     renderSnake(snake: Snake) {
         const $tile = document.getElementById(`box-${snake.head.tile}`) as HTMLElement;
         $tile.style.backgroundColor = "blue";
+        snake.body.forEach((bodyTile) => {
+            const $bodyTile = document.getElementById(`box-${bodyTile.tile}`) as HTMLElement;
+            $bodyTile.style.backgroundColor = "blue";
+        });
     }
 
     renderFruit(tileIndex: number) {
