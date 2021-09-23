@@ -1,16 +1,16 @@
 import Component from "./ecs/Component";
 import Engine from "./ecs/Engine";
+import System from "./ecs/System";
+import Entity from "./ecs/Entity";
 
 class Position extends Component {
     public properties: {
         x: number
         y: number
     };
+
     constructor(props) {
         super(props);
-    }
-
-    notify(eventName: string, properties: {}) {
     }
 }
 
@@ -23,14 +23,6 @@ class Velocity extends Component {
     constructor(props) {
         super(props);
     }
-
-    notify(eventName: string, properties: {}) {
-        // Increase speed when level changes.
-        if (eventName === "LEVEL_HAS_CHANGED") {
-            this.properties.x += 1;
-            this.properties.y += 1;
-        }
-    }
 }
 
 // tslint:disable-next-line:max-classes-per-file
@@ -41,11 +33,36 @@ class Score extends Component {
     constructor(props) {
         super(props);
     }
+}
 
-    notify(eventName: string, properties: {}) {
-        if (eventName === "SNAKE_ATE_FRUIT") {
-            this.properties.fruitsEaten += 1;
+class Keyboard {
+    public static keyPressed(key: string): boolean {
+        return false;
+    }
+}
+
+class KeyboardControlSystem extends System {
+    public update(entity: Entity) {
+
+        const position = entity.getComponent('Position') as Position;
+        const velocity = entity.getComponent('Velocity') as Velocity;
+
+        if (Keyboard.keyPressed('UP')) {
+            position.properties.y -= velocity.properties.y;
         }
+
+        if (Keyboard.keyPressed('DOWN')) {
+            position.properties.y += velocity.properties.y;
+        }
+
+        if (Keyboard.keyPressed('LEFT')) {
+            position.properties.x -= velocity.properties.x;
+        }
+
+        if (Keyboard.keyPressed('RIGHT')) {
+            position.properties.x += velocity.properties.x;
+        }
+
     }
 }
 
@@ -57,6 +74,7 @@ const snake = engine.createEntity();
 snake.addComponent(Position, {x: 10, y: 10});
 snake.addComponent(Velocity, {x: 1, y: 1});
 snake.addComponent(Score, {fruitsEaten: 0});
+
 
 // switch (eventName) {
 //     case "MOVE_LEFT":
