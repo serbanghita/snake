@@ -1,88 +1,49 @@
-import Component from "./ecs/Component";
 import Engine from "./ecs/Engine";
-import System from "./ecs/System";
-import Entity from "./ecs/Entity";
-
-class Position extends Component {
-    public properties: {
-        x: number
-        y: number
-    };
-
-    constructor(props) {
-        super(props);
-    }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-class Velocity extends Component {
-    public properties: {
-        x: number
-        y: number
-    };
-    constructor(props) {
-        super(props);
-    }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-class Score extends Component {
-    public properties: {
-        fruitsEaten: 0
-    };
-    constructor(props) {
-        super(props);
-    }
-}
-
-class Keyboard {
-    public static keyPressed(key: string): boolean {
-        return false;
-    }
-}
-
-class KeyboardControlSystem extends System {
-    public update(entity: Entity) {
-
-        const position = entity.getComponent('Position') as Position;
-        const velocity = entity.getComponent('Velocity') as Velocity;
-
-        if (Keyboard.keyPressed('UP')) {
-            position.properties.y -= velocity.properties.y;
-        }
-
-        if (Keyboard.keyPressed('DOWN')) {
-            position.properties.y += velocity.properties.y;
-        }
-
-        if (Keyboard.keyPressed('LEFT')) {
-            position.properties.x -= velocity.properties.x;
-        }
-
-        if (Keyboard.keyPressed('RIGHT')) {
-            position.properties.x += velocity.properties.x;
-        }
-
-    }
-}
+import Position from "./ecs/impl/component/Position";
+import Body from "./ecs/impl/component/Body";
+import Velocity from "./ecs/impl/component/Velocity";
+import Score from "./ecs/impl/component/Score";
+import Renderable from "./ecs/impl/component/Renderable";
+import Keyboard from "./ecs/impl/component/Keyboard";
+import RenderSystem from "./ecs/impl/system/RenderSystem";
+import KeyboardControlSystem from "./ecs/impl/system/KeyboardControlSystem";
 
 const engine = new Engine();
-engine.registerComponent(Position);
-engine.registerComponent(Velocity);
+const world = engine.createWorld();
 
-const snake = engine.createEntity();
+const snake = world.createEntity();
 snake.addComponent(Position, {x: 10, y: 10});
+snake.addComponent(Body, {width: 2, height: 2});
 snake.addComponent(Velocity, {x: 1, y: 1});
 snake.addComponent(Score, {fruitsEaten: 0});
+snake.addComponent(Renderable);
+snake.addComponent(Keyboard, {
+    UP: "ArrowUp",
+    DOWN: "ArrowDown",
+    LEFT: "ArrowLeft",
+    RIGHT: "ArrowRight"
+});
 
+const fruit = world.createEntity();
+fruit.addComponent(Position, {x: 20, y: 20});
+fruit.addComponent(Body, {width: 2, height: 2});
+fruit.addComponent(Renderable);
 
-// switch (eventName) {
-//     case "MOVE_LEFT":
-//         break;
-//     case "MOVE_RIGHT":
-//         break;
-//     case "MOVE_UP":
-//         break;
-//     case "MOVE_DOWN":
-//         break;
-// }
+const queryAllRendered = world.createQuery({
+    all: [Renderable]
+});
+
+const queryAllWithKeyboard = world.createQuery({
+    all: [Renderable, Keyboard]
+});
+
+const renderSystem = world.addSystem(RenderSystem, {canvasName: 'canvas', appendTo: document.body});
+const keyboardSystem = world.addSystem(KeyboardControlSystem, {});
+
+const loop = (dt) => {
+    keyboardSystem.update(queryAllWithKeyboard);
+    renderSystem.update(queryAllRendered);
+    window.requestAnimationFrame(loop);
+};
+
+loop(0);

@@ -1,24 +1,20 @@
 import Component from "./Component";
 import World from "./World";
-import Entity from "./Entity";
+import System from "./System";
 
 export default class Engine {
     public components: typeof Component[] = [];
-    public world: World;
-    public entities: Entity[] = [];
+    public systems: typeof System[] = [];
 
     public registerComponent(componentDeclaration: typeof Component) {
         this.components.push(componentDeclaration);
     }
 
-    public createWorld(): World {
-        this.world = new World();
-        return this.world;
+    public registerSystem(systemDeclaration: typeof System) {
+        this.systems.push(systemDeclaration);
     }
 
-    public createEntity(): Entity {
-        const entity = new Entity();
-        this.entities.push(entity);
-        return entity;
+    public createWorld(): World {
+        return new World();
     }
 }
