@@ -1,5 +1,5 @@
-import Game, {Entity} from "../Game";
-import Snake from "../Snake";
+import Game, {Entity} from "./Game";
+import Snake from "./Snake";
 
 export default class Scene {
     private $canvas: HTMLElement;

@@ -6,11 +6,12 @@ import Keyboard from "../component/Keyboard";
 
 // tslint:disable-next-line:no-empty-interface
 interface IKeyboardControlSystem {
+    fps: number;
 }
 
-
+// This system listens and stores only the last key pressed.
 export default class KeyboardControlSystem extends System {
-    private keysPressed: Set<string> = new Set([]);
+    private keyPressed: string;
 
     public constructor(props: IKeyboardControlSystem) {
         super(props);
@@ -19,22 +20,14 @@ export default class KeyboardControlSystem extends System {
 
     private bindEvents() {
         window.addEventListener("keydown", (e) => {
-            if (this.keysPressed.has(e.code)) {
-                return;
-            }
             e.preventDefault();
             e.stopPropagation();
-            this.keysPressed.add(e.code);
-        }, { capture: false });
-        window.addEventListener("keyup", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.keysPressed.delete(e.code);
+            this.keyPressed = e.code;
         }, { capture: false });
     }
 
-    public keyPressed(key: string):boolean {
-        return this.keysPressed.size > 0 && this.keysPressed.has(key);
+    public getKeyPressed():string {
+        return this.keyPressed;
     }
 
     private unbind() {
@@ -42,23 +35,35 @@ export default class KeyboardControlSystem extends System {
         // window.removeEventListener(eventName, listener, useCapture);
     }
 
-    public update(entities: Entity[]) {
+    public update(now, entities: Entity[]) {
+
+        if (this.fps > 0) {
+            const check = this.isFrequencySatisfied(now);
+            if (!check) {
+                return false;
+            }
+        }
+
         entities.forEach((entity) => {
             const position = entity.getComponent(Position);
             const velocity = entity.getComponent(Velocity);
             const keyboard = entity.getComponent(Keyboard);
 
-            if (this.keyPressed(keyboard.properties.UP)) {
-                position.properties.y -= velocity.properties.y;
-            } else if (this.keyPressed(keyboard.properties.DOWN)) {
-                position.properties.y += velocity.properties.y;
+            switch (this.keyPressed) {
+                case keyboard.properties.UP:
+                    position.properties.y -= velocity.properties.y;
+                    break;
+                case keyboard.properties.DOWN:
+                    position.properties.y += velocity.properties.y;
+                    break;
+                case keyboard.properties.LEFT:
+                    position.properties.x -= velocity.properties.x;
+                    break;
+                case keyboard.properties.RIGHT:
+                    position.properties.x += velocity.properties.x;
+                    break;
             }
 
-            if (this.keyPressed(keyboard.properties.LEFT)) {
-                position.properties.x -= velocity.properties.x;
-            } else if (this.keyPressed(keyboard.properties.RIGHT)) {
-                position.properties.x += velocity.properties.x;
-            }
         });
     }
 }

@@ -1,4 +1,4 @@
-import Game from "../Game";
+import Game from "./Game";
 import Scene from "./Scene";
 
 export default class GameImpl extends Game {

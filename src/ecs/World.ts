@@ -9,8 +9,8 @@ export interface IQueryFilters {
 }
 
 export default class World {
-    public entities: Entity[] = [];
-    public systems: System[] = [];
+    public entities: Entity[] = []; // @todo: Convert to Map.
+    public systems: Map<string, System> = new Map();
     private queries: [] = [];
 
     public createEntity(): Entity {
@@ -19,9 +19,9 @@ export default class World {
         return entity;
     }
 
-    public addSystem(systemDeclaration: SystemConstructor, properties?: {}): System {
+    public addSystem<T extends System>(systemDeclaration: new (props: any) => T, properties?: {}): T {
         const instance = new systemDeclaration(properties);
-        this.systems[instance.constructor.name] = instance;
+        this.systems.set(systemDeclaration.name, instance as T);
 
         return instance;
     }

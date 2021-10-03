@@ -11,4 +11,8 @@ export default class Entity {
     public getComponent<T>(componentDeclaration: new (props: any) => T): T {
         return this.components[componentDeclaration.name] as T;
     }
+
+    public hasComponent(componentDeclaration: ComponentConstructor): boolean {
+        return !!this.components[componentDeclaration.name];
+    }
 }
