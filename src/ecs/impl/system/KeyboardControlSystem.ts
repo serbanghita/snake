@@ -51,16 +51,16 @@ export default class KeyboardControlSystem extends System {
 
             switch (this.keyPressed) {
                 case keyboard.properties.UP:
-                    position.properties.y -= velocity.properties.y;
+                    position.properties.yFuture = position.properties.y - velocity.properties.y;
                     break;
                 case keyboard.properties.DOWN:
-                    position.properties.y += velocity.properties.y;
+                    position.properties.yFuture = position.properties.y + velocity.properties.y;
                     break;
                 case keyboard.properties.LEFT:
-                    position.properties.x -= velocity.properties.x;
+                    position.properties.xFuture = position.properties.x - velocity.properties.x;
                     break;
                 case keyboard.properties.RIGHT:
-                    position.properties.x += velocity.properties.x;
+                    position.properties.xFuture = position.properties.x + velocity.properties.x;
                     break;
             }
 

@@ -10,13 +10,14 @@ import KeyboardControlSystem from "./ecs/impl/system/KeyboardControlSystem";
 import Fruit from "./ecs/impl/component/Fruit";
 import GridSystem from "./ecs/impl/system/GridSystem";
 import PositionOnGrid from "./ecs/impl/component/PositionOnGrid";
-import MapGrid from "./ecs/impl/component/MapGrid";
+import Grid from "./ecs/impl/component/Grid";
 
 const TILE_SIZE = 8;
 const WIDTH_IN_TILES = 80;
 const HEIGHT_IN_TILES = 60;
 const WIDTH_IN_PX = 640;
 const HEIGHT_IN_PX = 480;
+const BLOCKED_TILES_VALUES = [1];
 
 
 const engine = new Engine();
@@ -40,11 +41,14 @@ const gridSystem = world.addSystem(GridSystem, {
 // ------------------------------------
 // Entities
 // ------------------------------------
-const grid = world.createEntity();
-grid.addComponent(MapGrid, {
+const map = world.createEntity();
+map.addComponent(Grid, {
     tileSize: TILE_SIZE,
     widthInTiles: WIDTH_IN_TILES,
-    heightInTiles: HEIGHT_IN_TILES
+    heightInTiles: HEIGHT_IN_TILES,
+    widthInPx: WIDTH_IN_PX,
+    heightInPx: HEIGHT_IN_PX,
+    blockedTilesValues: BLOCKED_TILES_VALUES,
 });
 
 const snake = world.createEntity();
@@ -91,7 +95,7 @@ const allEntitiesOnGrid = world.createQuery({
 // Link Entities to Services.
 // ------------------------------------
 renderSystem.setScreen(screen);
-gridSystem.addMapGrid(grid);
+gridSystem.addMap(map);
 
 // ------------------------------------
 // Loop
