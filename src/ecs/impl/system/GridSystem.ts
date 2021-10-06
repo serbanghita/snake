@@ -4,6 +4,7 @@ import Grid from "../component/Grid";
 import Tiled from "../component/Tiled";
 import Position from "../component/Position";
 import PositionOnGrid from "../component/PositionOnGrid";
+import {getTileFromXY} from "../../utils";
 
 export default class GridSystem extends System {
 
@@ -12,6 +13,13 @@ export default class GridSystem extends System {
 
     constructor(props) {
         super(props);
+    }
+
+    public initEntities(entities: Entity[]) {
+        entities.forEach((entity) => {
+            const positionOnGrid = entity.getComponent(PositionOnGrid);
+            this.mapGrid.properties.gridAsArray[positionOnGrid.properties.tile] = positionOnGrid.properties.tileType;
+        });
     }
 
     public addMap(map: Entity) {
@@ -35,18 +43,13 @@ export default class GridSystem extends System {
         return (row + 1) * widthInTiles - (widthInTiles - column);
     }
 
+    public isTileBlocked(tile: number): boolean {
+        const tileValue = this.mapGrid.properties.gridAsArray[tile];
+        return this.mapGrid.properties.blockedTilesValues.includes(tileValue);
+    }
+
     public getTileFromXY(x: number, y: number): number {
-        const tileWidthInPx = this.mapGrid.properties.widthInPx;
-        const tileHeightInPx = this.mapGrid.properties.heightInPx;
-        const widthInTiles = this.mapGrid.properties.widthInTiles;
-
-        const tileIndex = Math.floor(x / tileWidthInPx) + widthInTiles * Math.floor(y / tileHeightInPx);
-
-        if (tileIndex < 0 || tileIndex > (tileWidthInPx * tileHeightInPx)) {
-            throw new Error(`Invalid tile ${tileIndex} resulted from ${x} and ${y}`);
-        }
-
-        return tileIndex;
+        return getTileFromXY(x, y, this.mapGrid.properties);
     }
 
     update(now: number, entities: Entity[]) {
@@ -66,7 +69,25 @@ export default class GridSystem extends System {
         const position = entity.getComponent(Position);
         const positionOnGrid = entity.getComponent(PositionOnGrid);
 
-        if ()
+        if (
+            (typeof position.properties.xFuture === "undefined" && typeof position.properties.yFuture === "undefined") ||
+            (position.properties.x === position.properties.xFuture && position.properties.y === position.properties.yFuture)
+        ) {
+            return false;
+        }
+
+        const tileInTheFuture = this.getTileFromXY(position.properties.xFuture, position.properties.yFuture);
+        if (this.isTileBlocked(tileInTheFuture)) {
+            throw new Error(`Collision happened.`);
+        }
+
+        position.properties.x = position.properties.xFuture;
+        position.properties.y = position.properties.yFuture;
+        const tileInThePast = positionOnGrid.properties.tile;
+        positionOnGrid.properties.tile = tileInTheFuture;
+
+        this.mapGrid.properties.gridAsArray[tileInThePast] = 0;
+        this.mapGrid.properties.gridAsArray[tileInTheFuture] = 1;
     }
 
 }

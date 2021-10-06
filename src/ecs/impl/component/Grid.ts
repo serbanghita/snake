@@ -1,12 +1,13 @@
 import Component from "../../Component";
 
-interface IGridProps {
+export interface IGridProps {
     tileSize: number;
     widthInTiles: number;
     heightInTiles: number;
     widthInPx: number;
     heightInPx: number;
     blockedTilesValues: number[];
+    gridAsArray: number[];
 }
 
 export default class Grid extends Component {

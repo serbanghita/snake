@@ -1,10 +1,9 @@
 import Component from "../../Component";
 
-export default class PositionOnGrid extends Component {
+export default class Obstacle extends Component {
     public properties: {
-        tile: number
-        tileType: number
-    };
+        type: string;
+    }
 
     constructor(props) {
         super(props);

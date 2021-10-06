@@ -3,6 +3,7 @@ import Entity from "../../Entity";
 import Position from "../component/Position";
 import Body from "../component/Body";
 import Fruit from "../component/Fruit";
+import Obstacle from "../component/Obstacle";
 
 interface IRenderProps {
     canvasName: string;
@@ -82,7 +83,14 @@ export default class RenderSystem extends System {
         //     ctx.fillRect(x, y, width, height);
         // }
 
-        ctx.fillStyle = entity.hasComponent(Fruit) ? "green" : "blue";
+        let fillStyle = "black";
+        if (entity.hasComponent(Fruit)) {
+            fillStyle = "green";
+        } else if (entity.hasComponent(Obstacle)) {
+            fillStyle = "red";
+        }
+
+        ctx.fillStyle = fillStyle;
         ctx.fillRect(position.properties.x, position.properties.y, body.properties.width, body.properties.height);
 
         // ctx.stroke();
