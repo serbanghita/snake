@@ -121,7 +121,7 @@ gridSystem.initEntities(allEntitiesOnGrid);
 // ------------------------------------
 const loop = (now) => {
     keyboardSystem.update(now, allEntitiesWithKeyboard);
-    gridSystem.update(now, allEntitiesOnGrid);
+    gridSystem.update(now, allEntitiesWithKeyboard);
     renderSystem.update(now, allEntitiesToRender);
     window.requestAnimationFrame(loop);
 };
