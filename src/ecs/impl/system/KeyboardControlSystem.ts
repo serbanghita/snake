@@ -1,7 +1,7 @@
 import System from "../../System";
 import Entity from "../../Entity";
-import Position from "../component/Position";
-import Velocity from "../component/Velocity";
+import World from "../../World";
+import Direction, {DIRECTION} from "../component/Direction";
 import Keyboard from "../component/Keyboard";
 
 // tslint:disable-next-line:no-empty-interface
@@ -13,8 +13,8 @@ interface IKeyboardControlSystem {
 export default class KeyboardControlSystem extends System {
     private keyPressed: string;
 
-    public constructor(props: IKeyboardControlSystem) {
-        super(props);
+    public constructor(protected world: World, public properties: IKeyboardControlSystem) {
+        super(world, properties);
         this.bindEvents();
     }
 
@@ -42,32 +42,27 @@ export default class KeyboardControlSystem extends System {
             if (!check) {
                 return false;
             }
+            // console.log("key update");
         }
 
         entities.forEach((entity) => {
-            const position = entity.getComponent(Position);
-            const velocity = entity.getComponent(Velocity);
             const keyboard = entity.getComponent(Keyboard);
+            const direction = entity.getComponent(Direction);
 
             switch (this.keyPressed) {
                 case keyboard.properties.UP:
-                    position.properties.yFuture = position.properties.y - velocity.properties.y;
-                    position.properties.xFuture = position.properties.x;
+                    direction.properties.direction = DIRECTION.UP;
                     break;
                 case keyboard.properties.DOWN:
-                    position.properties.yFuture = position.properties.y + velocity.properties.y;
-                    position.properties.xFuture = position.properties.x;
+                    direction.properties.direction = DIRECTION.DOWN;
                     break;
                 case keyboard.properties.LEFT:
-                    position.properties.xFuture = position.properties.x - velocity.properties.x;
-                    position.properties.yFuture = position.properties.y;
+                    direction.properties.direction = DIRECTION.LEFT;
                     break;
                 case keyboard.properties.RIGHT:
-                    position.properties.xFuture = position.properties.x + velocity.properties.x;
-                    position.properties.yFuture = position.properties.y;
+                    direction.properties.direction = DIRECTION.RIGHT;
                     break;
             }
-
         });
     }
 }

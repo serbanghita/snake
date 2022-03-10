@@ -1,10 +1,10 @@
 import Component from "../../Component";
 
-export default class Position extends Component {
+export default class GameMap extends Component {
     public properties: {
-        x: number
-        y: number
-    };
+        name: string;
+        author: string;
+    }
 
     constructor(props) {
         super(props);

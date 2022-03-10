@@ -1,6 +1,7 @@
 import Entity from "./Entity";
+import World from "./World";
 
-export type SystemConstructor = new (properties?: {}) => System;
+export type SystemConstructor = new (world: World, properties?: {}) => System;
 
 interface ISystemProps {
     fps: number;
@@ -10,25 +11,21 @@ export default abstract class System {
     public timeDiff: number = 0;
     public timeThen: number = 0;
     public fps: number = 0;
+    private fpsElapsed: number = 0;
 
-    protected constructor(public properties: ISystemProps) {
+    protected constructor(protected world: World, public properties: ISystemProps) {
         this.fps = properties.fps;
     }
 
     public isFrequencySatisfied(now: number): boolean {
 
-        // Loop (FPS).
-        // this.loopTimeDiff = now - this.loopTimeThen;
-        // if (this.timerDiff > 1000) {
-        //     GameApi.loopFps = Math.round(1000 / this.loopTimeDiff);
-        // }
-        // this.loopTimeThen = now;
+        this.fpsElapsed++;
 
-        this.timeDiff = now - this.timeThen;
-        if (Math.round(1000 / this.timeDiff) <= this.fps) {
-            this.timeThen = now;
+        if (this.fpsElapsed === this.fps) {
+            this.fpsElapsed = 0;
             return true;
         }
+
         return false;
     }
 

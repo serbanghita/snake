@@ -10,7 +10,7 @@ export interface IQueryFilters {
 
 export default class World {
     public entities: Entity[] = []; // @todo: Convert to Map.
-    public systems: Map<string, System> = new Map();
+    public systems: {[key: string]: System} = {};
     private queries: [] = [];
 
     public createEntity(): Entity {
@@ -19,11 +19,15 @@ export default class World {
         return entity;
     }
 
-    public addSystem<T extends System>(systemDeclaration: new (props: any) => T, properties?: {}): T {
-        const instance = new systemDeclaration(properties);
-        this.systems.set(systemDeclaration.name, instance as T);
+    public addSystem<T extends System>(systemDeclaration: new (world: World, props: any) => T, properties?: {}): T {
+        const instance = new systemDeclaration(this, properties);
+        this.systems[instance.constructor.name] = instance;
 
-        return instance;
+        return instance as T;
+    }
+
+    public getSystem<T extends System>(systemDeclaration: new (world: World, props: any) => T): T {
+        return this.systems[systemDeclaration.name] as T;
     }
 
     public createQuery(filters: IQueryFilters): Entity[] {

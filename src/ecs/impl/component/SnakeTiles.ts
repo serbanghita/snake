@@ -1,9 +1,9 @@
 import Component from "../../Component";
+import Entity from "../../Entity";
 
-export default class Position extends Component {
+export default class SnakeTiles extends Component {
     public properties: {
-        x: number
-        y: number
+        tiles: Entity[]
     };
 
     constructor(props) {

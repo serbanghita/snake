@@ -1,9 +1,11 @@
 import System from "../../System";
 import Entity from "../../Entity";
-import Position from "../component/Position";
 import Body from "../component/Body";
 import Fruit from "../component/Fruit";
 import Obstacle from "../component/Obstacle";
+import PositionOnGrid from "../component/PositionOnGrid";
+import World from "../../World";
+import GridSystem from "./GridSystem";
 
 interface IRenderProps {
     canvasName: string;
@@ -15,12 +17,12 @@ export default class RenderSystem extends System {
     private readonly ctx: CanvasRenderingContext2D;
     private screen: Entity;
 
-    constructor(props: IRenderProps) {
-        super(props);
-        this.ctx = this.createCanvas(props.canvasName, props.appendTo);
+    constructor(protected world: World, public properties: IRenderProps) {
+        super(world, properties);
+        this.ctx = this.createCanvas(properties.canvasName, properties.appendTo);
     }
 
-    public setScreen(screen: Entity) {
+    public loadScreen(screen: Entity) {
         this.screen = screen;
     }
 
@@ -32,7 +34,7 @@ export default class RenderSystem extends System {
             }
         }
 
-        // console.log(`RenderSystem update`);
+        console.log(`RenderSystem update`);
 
         this.clearRectangle(this.screen);
 
@@ -62,15 +64,24 @@ export default class RenderSystem extends System {
 
     private clearRectangle(entity: Entity) {
         const ctx = this.ctx;
-        const position = entity.getComponent(Position);
+        const position = entity.getComponent(PositionOnGrid);
         const body = entity.getComponent(Body);
 
-        ctx.clearRect(position.properties.x, position.properties.y, position.properties.x + body.properties.width, position.properties.y + body.properties.height);
+        const gridSystem = this.world.getSystem(GridSystem);
+
+        const positionOnScreen = gridSystem.getXYFromTileIndex(position.properties.tile);
+
+        ctx.clearRect(
+            positionOnScreen.x,
+            positionOnScreen.y,
+            positionOnScreen.x + body.properties.width,
+            positionOnScreen.y + body.properties.height
+        );
     }
 
     private renderRectangle(entity: Entity) {
         const ctx = this.ctx;
-        const position = entity.getComponent(Position);
+        const position = entity.getComponent(PositionOnGrid);
         const body = entity.getComponent(Body);
 
         ctx.save();
@@ -91,7 +102,10 @@ export default class RenderSystem extends System {
         }
 
         ctx.fillStyle = fillStyle;
-        ctx.fillRect(position.properties.x, position.properties.y, body.properties.width, body.properties.height);
+        const gridSystem = this.world.getSystem(GridSystem);
+
+        const positionOnScreen = gridSystem.getXYFromTileIndex(position.properties.tile);
+        ctx.fillRect(positionOnScreen.x, positionOnScreen.y, body.properties.width, body.properties.height);
 
         // ctx.stroke();
         // ctx.closePath();

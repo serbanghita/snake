@@ -1,5 +1,4 @@
 import Engine from "./ecs/Engine";
-import Position from "./ecs/impl/component/Position";
 import Body from "./ecs/impl/component/Body";
 import Velocity from "./ecs/impl/component/Velocity";
 import Score from "./ecs/impl/component/Score";
@@ -11,13 +10,18 @@ import Fruit from "./ecs/impl/component/Fruit";
 import GridSystem from "./ecs/impl/system/GridSystem";
 import PositionOnGrid from "./ecs/impl/component/PositionOnGrid";
 import Grid, {IGridProps} from "./ecs/impl/component/Grid";
-import {getTileFromXY} from "./ecs/utils";
 import Obstacle from "./ecs/impl/component/Obstacle";
+import Name from "./ecs/impl/component/Name";
+import SnakeTiles from "./ecs/impl/component/SnakeTiles";
+import GameMap from "./ecs/impl/component/GameMap";
+import IsSnake from "./ecs/impl/component/IsSnake";
+import Direction, {DIRECTION} from "./ecs/impl/component/Direction";
 
 enum TileType {
     FREE = 0,
     SNAKE = 1,
-    OBSTACLE = 2
+    OBSTACLE = 2,
+    FRUIT = 3
 }
 
 const TILE_SIZE = 8;
@@ -26,49 +30,48 @@ const HEIGHT_IN_TILES = 60;
 const WIDTH_IN_PX = 640;
 const HEIGHT_IN_PX = 480;
 const BLOCKED_TILES_VALUES = [TileType.SNAKE, TileType.OBSTACLE];
-
+const SNAKE_GROW_TILES_VALUES = [TileType.FRUIT];
 
 const engine = new Engine();
 const world = engine.createWorld();
 
 // ------------------------------------
-// Systems
-// ------------------------------------
-const renderSystem = world.addSystem(RenderSystem, {
-    canvasName: 'canvas',
-    appendTo: document.body,
-    fps: 30
-});
-const keyboardSystem = world.addSystem(KeyboardControlSystem, {
-    fps: 24
-});
-const gridSystem = world.addSystem(GridSystem, {
-    fps: 1
-});
-
-// ------------------------------------
+//
 // Entities
+//
 // ------------------------------------
-const map = world.createEntity();
-const mapProperties: IGridProps = {
+const currentMap = world.createEntity();
+currentMap.addComponent(GameMap, {name: "The best snake map ever", author: "Gali"});
+currentMap.addComponent(Grid, {
     tileSize: TILE_SIZE,
     widthInTiles: WIDTH_IN_TILES,
     heightInTiles: HEIGHT_IN_TILES,
     widthInPx: WIDTH_IN_PX,
     heightInPx: HEIGHT_IN_PX,
     blockedTilesValues: BLOCKED_TILES_VALUES,
+    snakeGrowsTilesValues: SNAKE_GROW_TILES_VALUES,
     // Naive flat grid.
     gridAsArray: Array(WIDTH_IN_TILES * HEIGHT_IN_TILES).fill(0)
-};
-map.addComponent(Grid, mapProperties);
+});
+
+const snakeTiles = [350, 270, 190, 110, 30].map((tmpSnakeTile) => {
+    const snakeTile = world.createEntity();
+    snakeTile.addComponent(PositionOnGrid, {tile: tmpSnakeTile, tileType: TileType.SNAKE});
+    snakeTile.addComponent(Body, {width: TILE_SIZE, height: TILE_SIZE});
+    snakeTile.addComponent(Renderable);
+    snakeTile.addComponent(Direction, {direction: DIRECTION.NONE});
+
+    return snakeTile;
+});
 
 const snake = world.createEntity();
-snake.addComponent(Position, {x: 8, y: 8});
-snake.addComponent(PositionOnGrid, {tile: getTileFromXY(8, 8, mapProperties), tileType: TileType.SNAKE});
-snake.addComponent(Body, {width: 8, height: 8});
-snake.addComponent(Velocity, {x: 8, y: 8});
+snake.addComponent(IsSnake, {});
+snake.addComponent(PositionOnGrid, {tile: 0, tileType: TileType.FREE});
+snake.addComponent(Name, {label: "Snake"});
 snake.addComponent(Score, {fruitsEaten: 0});
-snake.addComponent(Renderable);
+snake.addComponent(SnakeTiles, {tiles: snakeTiles});
+snake.addComponent(Velocity, {speed: 1});
+snake.addComponent(Direction, {direction: DIRECTION.NONE});
 snake.addComponent(Keyboard, {
     UP: "ArrowUp",
     DOWN: "ArrowDown",
@@ -77,51 +80,70 @@ snake.addComponent(Keyboard, {
 });
 
 const obstacle = world.createEntity();
-obstacle.addComponent(Position, {x: 8 * 8, y: 8});
-obstacle.addComponent(PositionOnGrid, {tile: getTileFromXY(8 * 8, 8, mapProperties), tileType: TileType.OBSTACLE});
-obstacle.addComponent(Body, {width: 8, height: 8});
+obstacle.addComponent(PositionOnGrid, {tile: 120, tileType: TileType.OBSTACLE, mapWidthInTiles: WIDTH_IN_TILES, mapHeightInTiles: HEIGHT_IN_TILES, tileSize: TILE_SIZE});
+obstacle.addComponent(Body, {width: TILE_SIZE, height: TILE_SIZE});
 obstacle.addComponent(Renderable);
 obstacle.addComponent(Obstacle);
 
 const fruit = world.createEntity();
-fruit.addComponent(Position, {x: 16, y: 16});
-fruit.addComponent(PositionOnGrid, {tile: getTileFromXY(16, 16, mapProperties), tileType: TileType.FREE});
-fruit.addComponent(Body, {width: 8, height: 8});
+fruit.addComponent(PositionOnGrid, {tile: 260, tileType: TileType.FREE, mapWidthInTiles: WIDTH_IN_TILES, mapHeightInTiles: HEIGHT_IN_TILES, tileSize: TILE_SIZE});
+fruit.addComponent(Body, {width: TILE_SIZE, height: TILE_SIZE});
 fruit.addComponent(Renderable);
 fruit.addComponent(Fruit, {type: "apple"});
 
 const screen = world.createEntity();
-screen.addComponent(Position, {x: 0, y: 0});
+screen.addComponent(PositionOnGrid, {tile: 0, tileType: TileType.FREE, mapWidthInTiles: WIDTH_IN_TILES, mapHeightInTiles: HEIGHT_IN_TILES, tileSize: TILE_SIZE});
 screen.addComponent(Body, {width: 640, height: 480});
 
 // ------------------------------------
+//
 // Queries
+//
 // ------------------------------------
+const allEntitiesThatAreMaps = world.createQuery({
+    all: [GameMap]
+})
 const allEntitiesToRender = world.createQuery({
     all: [Renderable]
 });
 
 const allEntitiesWithKeyboard = world.createQuery({
-    all: [Renderable, Keyboard]
+    all: [Keyboard]
 });
 
 const allEntitiesOnGrid = world.createQuery({
-    all: [PositionOnGrid]
-})
+    all: [Direction, PositionOnGrid]
+});
 
 // ------------------------------------
-// Link Entities to Services.
+//
+// Systems
+//
 // ------------------------------------
-renderSystem.setScreen(screen);
-gridSystem.addMap(map);
-gridSystem.initEntities(allEntitiesOnGrid);
+const renderSystem = world.addSystem(RenderSystem, {
+    canvasName: 'canvas',
+    appendTo: document.body,
+    fps: 30
+});
+renderSystem.loadScreen(screen);
+
+const keyboardSystem = world.addSystem(KeyboardControlSystem, {
+    fps: 16
+});
+const gridSystem = world.addSystem(GridSystem, {
+    fps: 120
+});
+gridSystem.loadMaps(allEntitiesThatAreMaps);
+gridSystem.loadCurrentMap(currentMap);
+gridSystem.loadEntities(allEntitiesOnGrid);
+
 
 // ------------------------------------
 // Loop
 // ------------------------------------
 const loop = (now) => {
     keyboardSystem.update(now, allEntitiesWithKeyboard);
-    gridSystem.update(now, allEntitiesWithKeyboard);
+    gridSystem.update(now, allEntitiesOnGrid);
     renderSystem.update(now, allEntitiesToRender);
     window.requestAnimationFrame(loop);
 };

@@ -7,6 +7,7 @@ export interface IGridProps {
     widthInPx: number;
     heightInPx: number;
     blockedTilesValues: number[];
+    snakeGrowsTilesValues: number[];
     gridAsArray: number[];
 }
 
